@@ -1,363 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Balance Request</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Submission</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    .card {
+      background: #111;
+      padding: 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
 
-    <style>
-      * {
-        box-sizing: border-box;
-        font-family: "Inter", sans-serif;
+    h1 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 26px;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 30px;
+      color: #bbb;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: #00d4ff;
+      color: #000;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #00a8cc;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Connect Your API</h1>
+    <p>Enter your API key below. The data will be sent securely to n8n webhook.</p>
+
+    <form id="apiForm">
+      <label for="apiKey">API Key</label>
+      <input type="text" id="apiKey" name="apiKey" placeholder="sk-xxxxxx" required />
+      <button type="submit">Send to n8n</button>
+    </form>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('apiForm');
+    const statusEl = document.getElementById('status');
+
+    // 🔴 Replace with your n8n webhook URL
+    const WEBHOOK_URL = 'https://your-n8n-domain/webhook/your-webhook-id';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = 'Sending...';
+
+      const apiKey = document.getElementById('apiKey').value;
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ api_key: apiKey })
+        });
+
+        if (!res.ok) throw new Error('Request failed');
+
+        statusEl.textContent = '✅ API key sent successfully.';
+        statusEl.style.color = '#4caf50';
+        form.reset();
+      } catch (err) {
+        statusEl.textContent = '❌ Error sending data. Check webhook URL.';
+        statusEl.style.color = '#ff5252';
       }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-
-      .card {
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(14px);
-        border-radius: 20px;
-        padding: 40px;
-        width: 100%;
-        max-width: 420px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-      }
-
-      .badge {
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.15);
-        padding: 6px 14px;
-        border-radius: 30px;
-        font-size: 12px;
-        margin-bottom: 15px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-      }
-
-      h1 {
-        font-size: 28px;
-        margin: 0 0 10px 0;
-        font-weight: 700;
-      }
-
-      p {
-        font-size: 15px;
-        line-height: 1.6;
-        opacity: 0.85;
-        margin: 0 0 30px 0;
-      }
-
-      .input-group {
-        margin-bottom: 18px;
-        position: relative;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        opacity: 0.9;
-      }
-
-      .input-wrapper {
-        position: relative;
-      }
-
-      .currency-symbol {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #555;
-        font-weight: 600;
-        font-size: 16px;
-      }
-
-      input {
-        width: 100%;
-        padding: 14px 16px;
-        border-radius: 12px;
-        border: 2px solid transparent;
-        outline: none;
-        font-size: 16px;
-        background: rgba(255, 255, 255, 0.95);
-        transition: all 0.3s ease;
-        color: #333;
-      }
-
-      input:focus {
-        background: #fff;
-        border-color: #0072ff;
-        box-shadow: 0 0 0 4px rgba(0, 114, 255, 0.1);
-      }
-
-      input::placeholder {
-        color: #999;
-      }
-
-      input.error-input {
-        border-color: #ff5252;
-      }
-
-      .error-message {
-        color: #ff5252;
-        font-size: 12px;
-        margin-top: 6px;
-        display: none;
-      }
-
-      button {
-        width: 100%;
-        padding: 15px;
-        border-radius: 14px;
-        border: none;
-        background: linear-gradient(135deg, #00c6ff, #0072ff);
-        color: #fff;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease,
-          opacity 0.2s ease;
-        position: relative;
-        overflow: hidden;
-      }
-
-      button:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 114, 255, 0.5);
-      }
-
-      button:active:not(:disabled) {
-        transform: translateY(0);
-      }
-
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      button .spinner {
-        display: none;
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        margin: 0 auto;
-      }
-
-      button.loading .spinner {
-        display: block;
-      }
-
-      button.loading .button-text {
-        display: none;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .status {
-        text-align: center;
-        font-size: 14px;
-        margin-top: 15px;
-        padding: 12px;
-        border-radius: 10px;
-        display: none;
-        font-weight: 500;
-        animation: slideIn 0.3s ease;
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .success {
-        background: rgba(76, 175, 80, 0.15);
-        color: #4caf50;
-        border: 1px solid rgba(76, 175, 80, 0.3);
-      }
-
-      .error {
-        background: rgba(255, 82, 82, 0.15);
-        color: #ff5252;
-        border: 1px solid rgba(255, 82, 82, 0.3);
-      }
-
-      footer {
-        margin-top: 25px;
-        font-size: 12px;
-        opacity: 0.6;
-        text-align: center;
-      }
-
-      /* Responsive adjustments */
-      @media (max-width: 480px) {
-        .card {
-          padding: 30px 24px;
-        }
-
-        h1 {
-          font-size: 24px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <span class="badge">Balance Submission</span>
-
-      <h1>Submit Your Balance</h1>
-      <p>Enter your balance amount below to submit your request.</p>
-
-      <form id="balanceForm">
-        <div class="input-group">
-          <label for="balance">Balance Amount</label>
-          <div class="input-wrapper">
-            <input
-              type="text"
-              id="balance"
-              placeholder="Enter your balance"
-              required
-              autocomplete="off"
-            />
-          </div>
-          <div class="error-message" id="balanceError">
-            Please enter your balance
-          </div>
-        </div>
-
-        <button type="submit" id="submitBtn">
-          <span class="button-text">Submit Request</span>
-          <div class="spinner"></div>
-        </button>
-      </form>
-
-      <div class="status success" id="successMsg">
-        ✔ Request sent successfully
-      </div>
-      <div class="status error" id="errorMsg">
-        ✖ Failed to send request. Please try again.
-      </div>
-
-      <footer>© 2026 Balance System. All rights reserved.</footer>
-    </div>
-
-    <script>
-      const form = document.getElementById("balanceForm");
-      const balanceInput = document.getElementById("balance");
-      const submitBtn = document.getElementById("submitBtn");
-      const successMsg = document.getElementById("successMsg");
-      const errorMsg = document.getElementById("errorMsg");
-      const balanceError = document.getElementById("balanceError");
-
-      // Format input as text - no restrictions
-      balanceInput.addEventListener("input", (e) => {
-        // Clear error state when user types
-        balanceInput.classList.remove("error-input");
-        balanceError.style.display = "none";
-      });
-
-      // Validate balance input - just check it's not empty
-      function validateBalance(value) {
-        return value.trim() !== "";
-      }
-
-      // Hide status messages
-      function hideStatus() {
-        successMsg.style.display = "none";
-        errorMsg.style.display = "none";
-      }
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        hideStatus();
-
-        const balanceValue = balanceInput.value.trim();
-
-        // Validate input
-        if (!validateBalance(balanceValue)) {
-          balanceInput.classList.add("error-input");
-          balanceError.style.display = "block";
-          return;
-        }
-
-        // Show loading state
-        submitBtn.disabled = true;
-        submitBtn.classList.add("loading");
-
-        const payload = {
-          balance: balanceValue,
-          timestamp: new Date().toISOString(),
-        };
-
-        try {
-          const res = await fetch(
-            "https://588a605e4404.ngrok-free.app/webhook-test/13668929-8513-48eb-88d4-cfcdc9600f29",
-            {
-              method: "POST",
-              headers: { 
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-              },
-              body: JSON.stringify(payload),
-            }
-          );
-
-          // Remove loading state
-          submitBtn.disabled = false;
-          submitBtn.classList.remove("loading");
-
-          if (res.ok) {
-            successMsg.style.display = "block";
-            form.reset();
-
-            // Hide success message after 5 seconds
-            setTimeout(() => {
-              successMsg.style.display = "none";
-            }, 5000);
-          } else {
-            errorMsg.style.display = "block";
-          }
-        } catch (err) {
-          // Remove loading state
-          submitBtn.disabled = false;
-          submitBtn.classList.remove("loading");
-
-          errorMsg.textContent = "✖ Network error. Please check your connection.";
-          errorMsg.style.display = "block";
-        }
-      });
-
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
