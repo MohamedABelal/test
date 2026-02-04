@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إرسال بيانات إلى Webhook</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+        }
+        h1 {
+            color: #1c1e21;
+            margin-bottom: 24px;
+            font-size: 24px;
+        }
+        textarea {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dddfe2;
+            font-size: 16px;
+            min-height: 100px;
+            resize: vertical;
+            margin-bottom: 20px;
+            font-family: inherit;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+        button {
+            background-color: #1877f2;
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #166fe5;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 14px;
+            height: 20px;
+        }
+        .success {
+            color: #42b72a;
+        }
+        .error {
+            color: #fa383e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>إرسال بيانات إلى Webhook</h1>
+        <form id="webhookForm">
+            <textarea id="data" placeholder="أدخل النص هنا..." required></textarea>
+            <button type="submit">إرسال</button>
+        </form>
+        <div id="responseMessage" class="message"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('webhookForm');
+        const dataInput = document.getElementById('data');
+        const responseMessage = document.getElementById('responseMessage');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const webhookUrl = 'http://localhost:5678/form/6fae7473-0897-4638-9a70-d81dfb58f5a7';
+            const textData = dataInput.value;
+
+            responseMessage.textContent = '';
+            responseMessage.className = 'message';
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: textData }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('فشل الطلب: ' + response.statusText);
+            })
+            .then(data => {
+                responseMessage.textContent = 'تم إرسال البيانات بنجاح!';
+                responseMessage.classList.add('success');
+                dataInput.value = ''; // Clear the textarea
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                responseMessage.textContent = 'حدث خطأ أثناء إرسال البيانات.';
+                responseMessage.classList.add('error');
+            });
+        });
+    </script>
+</body>
+</html>
